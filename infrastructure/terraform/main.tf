@@ -38,6 +38,16 @@ resource "aws_subnet" "public" {
   }
 }
 
+resource "aws_subnet" "private_b" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.3.0/24"
+  availability_zone = "eu-west-1b"
+
+  tags = {
+    Name = "cloud-booking-private-subnet-b"
+  }
+}
+
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
 
@@ -114,4 +124,75 @@ resource "aws_instance" "app" {
   tags = {
     Name = "cloud-booking-app-ec2"
   }
+}
+
+resource "aws_subnet" "private" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.2.0/24"
+  availability_zone = "eu-west-1a"
+
+  tags = {
+    Name = "cloud-booking-private-subnet"
+  }
+}
+
+resource "aws_security_group" "db_sg" {
+  name        = "cloud-booking-db-sg"
+  description = "Allow PostgreSQL from EC2 only"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    description     = "PostgreSQL from app EC2"
+    from_port       = 5432
+    to_port         = 5432
+    protocol        = "tcp"
+    security_groups = [aws_security_group.web_sg.id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "cloud-booking-db-sg"
+  }
+}
+
+resource "aws_db_subnet_group" "postgres" {
+  name = "cloud-booking-db-subnet-group"
+
+  subnet_ids = [
+      aws_subnet.private.id,
+      aws_subnet.private_b.id
+  ]
+
+  tags = {
+    Name = "cloud-booking-db-subnet-group"
+  }
+}
+
+resource "aws_db_instance" "postgres" {
+  identifier             = "cloud-booking-postgres"
+  engine                 = "postgres"
+  engine_version         = "16"
+  instance_class         = "db.t3.micro"
+
+  allocated_storage      = 20
+
+  db_name                = "bookingdb"
+  username               = "postgres"
+  password               = "CloudBooking123!"
+
+  publicly_accessible    = false
+
+  skip_final_snapshot    = true
+
+  vpc_security_group_ids = [
+    aws_security_group.db_sg.id
+  ]
+
+  db_subnet_group_name = aws_db_subnet_group.postgres.name
 }
