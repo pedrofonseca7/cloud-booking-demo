@@ -1,0 +1,23 @@
+---
+- name: Deploy container
+  hosts: web
+  become: yes
+
+  tasks:
+
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: Start Docker
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Run container
+      shell: |
+        docker rm -f cloud-booking-demo || true
+        docker run -d --name cloud-booking-demo -p 8080:80 zeni7k/cloud-booking-demo:v1
