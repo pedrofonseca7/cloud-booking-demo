@@ -13,10 +13,12 @@ import java.util.Map;
 public class BookingController {
 
     private final BookingRepository bookingRepository;
+    private final SqsService sqsService;
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public BookingController(BookingRepository bookingRepository) {
+    public BookingController(BookingRepository bookingRepository, SqsService sqsService) {
         this.bookingRepository = bookingRepository;
+        this.sqsService = sqsService;
     }
 
     @GetMapping
@@ -29,6 +31,10 @@ public class BookingController {
 
         Booking saved = bookingRepository.save(booking);
 
+        sqsService.sendMessage(
+                "New booking created: " + saved.getClientName() + " - " + saved.getEventName()
+        );
+
         String notificationResponse = restTemplate.getForObject(
                 "http://52.209.110.168:8082/notify",
                 String.class
@@ -36,7 +42,8 @@ public class BookingController {
 
         return Map.of(
                 "booking", saved,
-                "notification", notificationResponse
+                "notification", notificationResponse,
+                "sqs", "Message sent to SQS"
         );
     }
 
