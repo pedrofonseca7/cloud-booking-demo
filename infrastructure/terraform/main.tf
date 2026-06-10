@@ -119,7 +119,7 @@ resource "aws_instance" "app" {
   subnet_id                   = aws_subnet.public.id
   vpc_security_group_ids      = [aws_security_group.web_sg.id]
   associate_public_ip_address = true
-  key_name = aws_key_pair.deployer.key_name
+  key_name                    = aws_key_pair.deployer.key_name
 
   tags = {
     Name = "cloud-booking-app-ec2"
@@ -165,8 +165,8 @@ resource "aws_db_subnet_group" "postgres" {
   name = "cloud-booking-db-subnet-group"
 
   subnet_ids = [
-      aws_subnet.private.id,
-      aws_subnet.private_b.id
+    aws_subnet.private.id,
+    aws_subnet.private_b.id
   ]
 
   tags = {
@@ -175,20 +175,20 @@ resource "aws_db_subnet_group" "postgres" {
 }
 
 resource "aws_db_instance" "postgres" {
-  identifier             = "cloud-booking-postgres"
-  engine                 = "postgres"
-  engine_version         = "16"
-  instance_class         = "db.t3.micro"
+  identifier     = "cloud-booking-postgres"
+  engine         = "postgres"
+  engine_version = "16"
+  instance_class = "db.t3.micro"
 
-  allocated_storage      = 20
+  allocated_storage = 20
 
-  db_name                = "bookingdb"
-  username               = "postgres"
-  password               = "CloudBooking123!"
+  db_name  = "bookingdb"
+  username = "postgres"
+  password = "CloudBooking123!"
 
-  publicly_accessible    = false
+  publicly_accessible = false
 
-  skip_final_snapshot    = true
+  skip_final_snapshot = true
 
   vpc_security_group_ids = [
     aws_security_group.db_sg.id
