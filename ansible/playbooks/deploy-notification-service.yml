@@ -1,0 +1,18 @@
+---
+- name: Deploy Notification Service
+  hosts: web
+  become: yes
+
+  tasks:
+    - name: Pull image
+      shell: docker pull zeni7k/notification-service:v1
+
+    - name: Remove old container
+      shell: docker rm -f notification-service || true
+
+    - name: Run Notification Service
+      shell: |
+        docker run -d \
+        --name notification-service \
+        -p 8082:8082 \
+        zeni7k/notification-service:v1

@@ -1,0 +1,19 @@
+---
+- name: Deploy Booking API
+  hosts: web
+  become: yes
+
+  tasks:
+
+    - name: Pull image
+      shell: docker pull zeni7k/booking-api:v1
+
+    - name: Remove old container
+      shell: docker rm -f booking-api || true
+
+    - name: Run Booking API
+      shell: |
+        docker run -d \
+        --name booking-api \
+        -p 8081:8080 \
+        zeni7k/booking-api:v1
